@@ -3,3 +3,13 @@ welcome: |
       Welcome to the Random Pokemon Generator.
       What can I generate for you?
   </speak>
+
+genator_problem: Sorry, the Generator is having some problems right now. Please try again.
+
+oneshot_pokemon: |
+  Your Pokemon are: {{ pokemon }}
+
+list_of_regions: |
+  I can generate Pokemon from any of the following regions: {{ regions }}. 
+
+generate_reprompt: What can I generate for you?

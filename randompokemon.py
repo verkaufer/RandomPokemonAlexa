@@ -27,11 +27,19 @@ def launch():
 @ask.intent("GetPokemon")
 def oneshot_pokemon():
     """
-    Returns one or more Pokemon based on default generator values
+    Returns 1 to 6 Pokemon based on default generator values
     """
-    pokemon_data = _send_api_request(num_pokemon=randint(1,6))
-    generated_pokemon = ", ".join(pokemon_data)
-    statement_text = render_template("oneshot_pokemon", pokemon=pokemon_data)
+
+    number_of_pokemon = randint(1,6)
+
+    try:
+        api_response = _send_api_request(num_pokemon=number_of_pokemon)
+    except:
+        return statement(render_template("genator_problem")).simple_card("Random Pokemon Generator", 
+                                                                        render_template("genator_problem"))
+
+    generated_pokemon = ", ".join(_format_pokemon_as_list(api_response))
+    statement_text = render_template("oneshot_pokemon", pokemon=generated_pokemon)
     return statement(statement_text)
 
 
@@ -42,6 +50,18 @@ def get_random_pokemon():
     """
     pass
 
+@ask.intent("ListOfRegions")
+def get_list_of_regions():
+    regions = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Unova', 'Kalos', 'Alola']
+
+    # make fluent by inserting "and" before last element
+    regions.insert(-1, "and")
+    
+    list_of_regions = ", ".join(regions)
+    return question(render_template("list_of_regions", regions=list_of_regions)) \
+            .reprompt(render_template("generate_reprompt"))
+
+
 def _send_api_request(num_pokemon, pokemon_type="any", region="national"):
     """
     Helper method to send the actual POST request to API
@@ -49,22 +69,28 @@ def _send_api_request(num_pokemon, pokemon_type="any", region="national"):
     pokemon_criteria = {'number_of_pokemon': num_pokemon, 'type1': pokemon_type, 'region': region}
 
     data = urlencode(pokemon_criteria)
-    response = urlopen(ENDPOINT + "/generate", data=data).read()
+    response = urlopen(ENDPOINT + "/generate", data=data)
 
-    if len(response) == 0 or response.code !== 200:
-        statement_text = render_template('generator_problem')
-        return statement(statement_text).simple_card("Pokemon Generator", statement_text)
+    if response.code != 200:
+        raise Exception("Response returned an error")
+    return response.read()
 
-    # put json values into list
-    generated_pokemon = _format_generator_response(json.loads(response))
 
-    return generated_pokemon
-
-def _format_generator_response(response):
+def _format_pokemon_as_list(response):
     list_of_pokemon = list()
 
-    for pokemon_json in response:
-        list_of_pokemon.append(pokemon_json.get('name'))
+    pokemon_response = json.loads(response)
+
+    for pokemon in pokemon_response:
+        list_of_pokemon.append(pokemon.get('name'))
+
+    # make the list sound more fluent by inserting "and" before last element
+    if len(list_of_pokemon) >= 2:
+        list_of_pokemon.insert(-1, 'and')
 
     return list_of_pokemon
 
+
+if __name__ == '__main__':
+
+    app.run(debug=True)
