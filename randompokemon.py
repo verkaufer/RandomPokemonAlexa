@@ -12,11 +12,8 @@ ENDPOINT = "https://randompokemongenerator.com/api"
 app = Flask(__name__)
 ask = Ask(app, "/")
 
-request_mappings = {
-    'num_pokemon': 'Count',
-    'region': 'Region',
-    'type': 'Type'
-}
+REGIONS = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Unova', 'Kalos', 'Alola']
+POKEMON_TYPES = []
 
 @ask.launch
 def launch():
@@ -43,21 +40,36 @@ def oneshot_pokemon():
     return statement(statement_text)
 
 
-@ask.intent("GetSpecificPokemon")
-def get_random_pokemon():
+@ask.intent("GetSpecificPokemon",
+            mapping={'number_of_pokemon': 'Count', 'pokemon_type': 'Type', 'region': 'Region'},
+            convert={'count': int},
+            default={'number_of_pokemon': 1, 'pokemon_type': 'any', 'region': 'national'})
+def get_random_pokemon(number_of_pokemon, pokemon_type, region):
     """
     Uses user-provided slots to request random pokemon that meet constraints from slots
     """
+    if not 1 <= number_of_pokemon <= 6:
+        return question(render_template("number_of_pokemon_error").reprompt("generate_reprompt"))
+
+    if region not in REGIONS:
+        return question(render_template("region_error").reprompt("generate_reprompt"))
+
+    if pokemon_type not in POKEMON_TYPES:
+        return question(render_template("pokemon_type_error").reprompt("generate_reprompt"))
+
+    try:
+        api_response = _send_api_request(number_of_pokemon, pokemon_type, region)
+    except:
+        return statement(render_template("genator_problem")).simple_card("Random Pokemon Generator", 
+                                                                        render_template("genator_problem"))
     pass
 
 @ask.intent("ListOfRegions")
 def get_list_of_regions():
-    regions = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Unova', 'Kalos', 'Alola']
-
     # make fluent by inserting "and" before last element
-    regions.insert(-1, "and")
+    REGIONS.insert(-1, "and")
     
-    list_of_regions = ", ".join(regions)
+    list_of_regions = ", ".join(REGIONS)
     return question(render_template("list_of_regions", regions=list_of_regions)) \
             .reprompt(render_template("generate_reprompt"))
 
