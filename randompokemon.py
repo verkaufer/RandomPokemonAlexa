@@ -12,31 +12,30 @@ ENDPOINT = "https://randompokemongenerator.com/api"
 app = Flask(__name__)
 ask = Ask(app, "/")
 
-REGIONS = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Unova', 'Kalos', 'Alola']
 
 @ask.launch
 def launch():
-    launch_text = render_template('welcome')
-    return question(launch_text)
+    return question(render_template('welcome'))
 
 
 @ask.intent("GetPokemon")
-def oneshot_pokemon():
+def generate_without_options():
     """
     Returns 1 to 6 Pokemon based on default generator values
     """
-
+    # Generator chooses how many Pokemon to generate
     number_of_pokemon = randint(1,6)
 
     try:
         api_response = _send_api_request(num_pokemon=number_of_pokemon)
     except:
-        return statement(render_template("genator_problem")).simple_card("Random Pokemon Generator", 
-                                                                        render_template("genator_problem"))
+        return statement(render_template("genator_problem")) \
+                .simple_card("Random Pokemon Generator", render_template("genator_problem"))
 
-    generated_pokemon = ", ".join(_format_pokemon_as_list(api_response))
-    statement_text = render_template("oneshot_pokemon", pokemon=generated_pokemon)
-    return statement(statement_text)
+    generated_pokemon = _format_pokemon_as_list(api_response)
+
+    generated_pokemon_response = render_template("oneshot_pokemon", pokemon=generated_pokemon)
+    return statement(generated_pokemon_response)
 
 
 @ask.intent("GetSpecificPokemon",
@@ -48,39 +47,72 @@ def get_random_pokemon(number_of_pokemon, pokemon_type, region):
     Uses user-provided slots to request random pokemon that meet constraints from slots
     """
     if not 1 <= number_of_pokemon <= 6:
-        return question(render_template("number_of_pokemon_error").reprompt("generate_reprompt"))        
+        return question(render_template("number_of_pokemon_error")) \
+                .reprompt(render_template("generate_reprompt"))        
 
     try:
         api_response = _send_api_request(number_of_pokemon, pokemon_type, region)
 
     except InvalidPokemonType:
-        return question(render_template("pokemon_type_error").reprompt("generate_reprompt"))
+        return question(render_template("pokemon_type_error")) \
+                .reprompt(render_template("generate_reprompt"))
 
     except InvalidPokemonRegion:
-        return question(render_template("region_error").reprompt("generate_reprompt"))
+        return question(render_template("region_error")) \
+                .reprompt(render_template("generate_reprompt"))
 
     except:
-        return statement(render_template("genator_problem")).simple_card("Random Pokemon Generator", 
-                                                                        render_template("genator_problem"))
+        return statement(render_template("genator_problem")) \
+                .simple_card("Random Pokemon Generator", render_template("genator_problem"))
+    
     # Format results so they are correctly read by Alexa
-    generated_pokemon = ", ".join(_format_pokemon_as_list(api_response))
-    statement_text = render_template("custom_generated_pokemon", 
-                                     num_pokemon=number_of_pokemon,
-                                     pokemon_type=pokemon_type,
-                                     region=region,
-                                     pokemon=generated_pokemon)
-    return statement(statement_text)
+    generated_pokemon = _format_pokemon_as_list(api_response)
+
+    # Render our response from template
+    generated_pokemon_results = render_template("custom_generated_pokemon", 
+                                                 num_pokemon=number_of_pokemon,
+                                                 pokemon_type=pokemon_type if pokemon_type != "any" else "",
+                                                 region=region,
+                                                 pokemon=generated_pokemon)
+    return statement(generated_pokemon_results)
+
 
 @ask.intent("ListOfRegions")
 def get_list_of_regions():
     # make fluent by inserting "and" before last element
-    REGIONS.insert(-1, "and")
+    list_of_regions = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Unova', 'Kalos', 'Alola']
+    list_of_regions.insert(-1, "and")
     
-    list_of_regions = ", ".join(REGIONS)
     return question(render_template("list_of_regions", regions=list_of_regions)) \
             .reprompt(render_template("generate_reprompt"))
 
 
+# ======================
+# Basic intent handling for Help, End, Cancel, and Stop
+# ======================
+@ask.intent('AMAZON.HelpIntent')
+def helpme():
+    return question(render_template('help_main'))\
+            .reprompt(render_template('generate_reprompt'))
+
+@ask.session_ended
+def session_ended():
+    return "", 200
+
+
+@ask.intent('AMAZON.StopIntent')
+def stop_action():
+    return statement(render_template('end_generator_session'))
+
+
+@ask.intent('AMAZON.CancelIntent')
+def cancel_request():
+    return statement(render_template('end_generator_session'))
+
+
+# ======================
+# Helper methods
+# ======================
 def _send_api_request(num_pokemon, pokemon_type="any", region="national"):
     """
     Helper method to send the actual POST request to API
@@ -114,6 +146,9 @@ def _format_pokemon_as_list(response):
     return list_of_pokemon
 
 
+# ======================
+# Exceptions
+# ======================
 class InvalidPokemonType(Exception):
     """Raise if Pokemon Type given is not one of the real Pokemon types"""
     pass
@@ -125,5 +160,4 @@ class InvalidPokemonRegion(Exception):
 
 
 if __name__ == '__main__':
-
-    app.run(debug=True)
+    app.run()

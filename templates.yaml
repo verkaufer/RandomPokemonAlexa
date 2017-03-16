@@ -1,25 +1,33 @@
 welcome: |
   <speak>
       Welcome to the Random Pokemon Generator.
-      What can I generate for you?
+      If you need help, just say "help." What can I generate for you? 
   </speak>
+
+help_main: |
+  The Pokemon Generator can generate up to 6 Pokemon of any type and from any region or Pokedex. For example,
+  say generate pokemon to get Pokemon with any type from any region. Or say get 3 fire Pokemon from Kanto to
+  return only fire Pokemon from the Kanto Pokedex.
 
 genator_problem: Sorry, the Generator is having some problems right now. Please try again.
 
 oneshot_pokemon: |
-  Your Pokemon are: {{ pokemon }}
+   Your Pokemon {{ '%s' % 'are' if pokemon|length > 1 else 'is' }}: {{ pokemon|join(', ') }}
 
 list_of_regions: |
-  I can generate Pokemon from any of the following regions: {{ regions }}. 
+  I can generate Pokemon from any of the following regions: {{ regions|join(', ') }}. 
 
 generate_reprompt: What can I generate for you?
 
-number_of_pokemon_error: The Generator can generate 1 to 6 Pokemon at a time. Please try again.
+number_of_pokemon_error: The Generator can generate 1 to 6 Pokemon at a time. Please try asking again.
 
-region_error: That region is not recognized by the Generator. Please try again.
+region_error: That region is not recognized by the Generator. Please try asking again.
 
-pokemon_type_error: That Pokemon type is not recognized by the Generator. Please try again.
+pokemon_type_error: That Pokemon type is not recognized by the Generator. Please try asking again.
 
 custom_generated_pokemon: |
-    Here are your {{ num_pokemon }} Pokemon that are {{ pokemon_type }} type and from the {{ region }} region:
-    {{ pokemon }}.
+    Your {{ num_pokemon }} {{ pokemon_type|capitalize }} Pokemon from the {{ region|capitalize }} region {{ '%s' % 'are' if pokemon|length > 1 else 'is' }}:
+    {{ pokemon|join(', ') }}.
+
+end_generator_session: |
+  Goodbye!
