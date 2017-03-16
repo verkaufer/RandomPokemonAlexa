@@ -19,3 +19,7 @@ number_of_pokemon_error: The Generator can generate 1 to 6 Pokemon at a time. Pl
 region_error: That region is not recognized by the Generator. Please try again.
 
 pokemon_type_error: That Pokemon type is not recognized by the Generator. Please try again.
+
+custom_generated_pokemon: |
+    Here are your {{ num_pokemon }} Pokemon that are {{ pokemon_type }} type and from the {{ region }} region:
+    {{ pokemon }}.
