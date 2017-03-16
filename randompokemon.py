@@ -1,15 +1,17 @@
+import os
 from random import randint
+
 from six.moves.urllib.request import Request, urlopen
 from six.moves.urllib.parse import urlencode
 
 from flask import Flask, json, render_template
 from flask_ask import Ask, request, session, question, statement
 
-ASK_APPLICATION_ID = None # TODO: replace with real application id
 
 ENDPOINT = "https://randompokemongenerator.com/api"
 
 app = Flask(__name__)
+app.config['ASK_APPLICATION_ID'] = os.environ.get('ask_application_id')
 ask = Ask(app, "/")
 
 
