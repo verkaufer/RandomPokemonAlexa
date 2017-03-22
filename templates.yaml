@@ -1,7 +1,7 @@
 welcome: |
   <speak>
       Welcome to the Random Pokemon Generator.
-      If you need help, just say "help." What can I generate for you? 
+      If you need assistance, say "help." What can I generate for you? 
   </speak>
 
 help_main: |
@@ -15,15 +15,15 @@ oneshot_pokemon: |
    Your Pokemon {{ '%s' % 'are' if pokemon|length > 1 else 'is' }}: {{ pokemon|join(', ') }}
 
 list_of_regions: |
-  I can generate Pokemon from any of the following regions: {{ regions|join(', ') }}. 
+  I can generate Pokemon from any of the following regions: {{ regions|join(', ') }}. What can I generate for you? 
 
 generate_reprompt: What can I generate for you?
 
-number_of_pokemon_error: The Generator can generate 1 to 6 Pokemon at a time. Please try asking again.
+number_of_pokemon_error: The Generator can generate 1 to 6 Pokemon at a time. Please try again.
 
-region_error: That region is not recognized by the Generator. Please try asking again.
+region_error: That region is not recognized by the Generator. Please try again.
 
-pokemon_type_error: That Pokemon type is not recognized by the Generator. Please try asking again.
+pokemon_type_error: That Pokemon type is not recognized by the Generator. Please try again.
 
 custom_generated_pokemon: |
     Your {{ num_pokemon }} {{ pokemon_type|capitalize }} Pokemon from the {{ region|capitalize }} region {{ '%s' % 'are' if pokemon|length > 1 else 'is' }}:

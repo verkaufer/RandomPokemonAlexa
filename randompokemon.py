@@ -128,6 +128,8 @@ def _send_api_request(num_pokemon, pokemon_type="any", region="national"):
         errors = response.json()
         if errors.get('type1') or errors.get('type2'):
             raise InvalidPokemonType
+        elif errors.get('region'):
+            raise InvalidPokemonRegion
         else:
             raise Exception("Response returned an error")
     return response.read()
