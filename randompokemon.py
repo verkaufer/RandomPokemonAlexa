@@ -1,9 +1,7 @@
 import os
 from random import randint
 
-from six.moves.urllib.request import Request, urlopen
-from six.moves.urllib.parse import urlencode
-
+import requests
 from flask import Flask, json, render_template
 from flask_ask import Ask, request, session, question, statement
 
@@ -121,10 +119,9 @@ def _send_api_request(num_pokemon, pokemon_type="any", region="national"):
     """
     pokemon_criteria = {'number_of_pokemon': num_pokemon, 'type1': pokemon_type, 'region': region}
 
-    data = urlencode(pokemon_criteria)
-    response = urlopen(ENDPOINT + "/generate", data=data)
+    response = requests.post(ENDPOINT + "/generate", data=pokemon_criteria)
 
-    if response.code != 200:
+    if response.status_code != requests.codes.ok:
         errors = response.json()
         if errors.get('type1') or errors.get('type2'):
             raise InvalidPokemonType
@@ -132,15 +129,13 @@ def _send_api_request(num_pokemon, pokemon_type="any", region="national"):
             raise InvalidPokemonRegion
         else:
             raise Exception("Response returned an error")
-    return response.read()
+    return response.json()
 
 
-def _format_pokemon_as_list(response):
+def _format_pokemon_as_list(api_response):
     list_of_pokemon = list()
 
-    pokemon_response = json.loads(response)
-
-    for pokemon in pokemon_response:
+    for pokemon in api_response:
         list_of_pokemon.append(pokemon.get('name'))
 
     # make the list sound more fluent by inserting "and" before last element
@@ -164,4 +159,4 @@ class InvalidPokemonRegion(Exception):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
